@@ -1,0 +1,5 @@
+# Directories
+./.git/*
+**/__pycahce__
+
+
