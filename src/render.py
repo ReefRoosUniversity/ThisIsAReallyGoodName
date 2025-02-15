@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import level
 import pygame
-import numpy as np
 
 
 class Rengine:
@@ -21,8 +20,19 @@ class Rengine:
         for i in range(level_.board_state.size):
             x = i % level_.width
             y = i//level_.width
+            colour = COLOUR[level_.board_state[x][y].type]
+            if (x, y) in level_.selection and colour == "white":
+                colour = "pink"
+            if len(level_.selection) > 1 and (x, y) == level_.selection[1]:
+                colour = "GREEN"
+            pygame.draw.rect(screen, colour,
+                             pygame.Rect(
+                                 leftAdjust + x * RectWidth +
+                                 (x % level_.width),
+                                 topAdjust + y * RectWidth +
+                                 (y % level_.height),
+                                 RectWidth, RectWidth))
 
-            pygame.draw.rect(screen, COLOUR[level_.board_state[x][y].type], pygame.Rect(
-                leftAdjust + x * RectWidth + (x % level_.width),
-                topAdjust + y * RectWidth + (y % level_.height),
-                RectWidth, RectWidth))
+    def drawObjects(screen: pygame.Surface, level_: level.Level,
+                    screenDimensions=(1280, 720)):
+        pass

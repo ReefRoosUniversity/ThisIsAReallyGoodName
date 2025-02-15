@@ -19,23 +19,30 @@ def main():
     stage.board_state[6, 5] = ConveyorTile((6, 5), (1, 1))
     stage.board_state[2, 1] = ReceiverTile((2, 1))
 
-    try:
-        # %% GAMELOOP
-        while running:
-            # poll for events
-            # pygame.QUIT event means the user clicked X to close your window
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-            screen.fill("#16161D")
-            Rengine.draw(screen, stage)
+    # try:
+    # %% GAMELOOP
+    while running:
+        deltaTime = pygame.time.get_ticks()
+        # poll for events
+        # pygame.QUIT event means the user clicked X to close your window
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN \
+                    and pygame.mouse.get_pressed(3)[0]:
+                stage.mouseInitial = stage.convertScreenToGrid(
+                    pygame.mouse.get_pos())
+        if pygame.mouse.get_pressed(3)[0]:
+            stage.processMouse(pygame.mouse.get_pos())
+        screen.fill("#16161D")
+        Rengine.draw(screen, stage)
 
-            # flip() the display to put your work on screen
-            pygame.display.flip()
+        # flip() the display to put your work on screen
+        pygame.display.flip()
 
-            clock.tick(60)  # limits FPS to 60
-    except Exception as e:
-        print(e)
+        clock.tick(30)  # limits FPS to 30
+    # except Exception as e:
+    #     print(e)
     pygame.quit()
 
 
