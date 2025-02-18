@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
+# %% LEVEL
+
 
 class Level:
     def __init__(self, n=8, m=8, winCondition=[]):
@@ -20,7 +22,8 @@ class Level:
 
     def processMouse(self, currentPosition: (int, int),
                      screenDimensions=(1280, 720)):
-        gridCoordinates = self.convertScreenToGrid(currentPosition)
+        gridCoordinates = self.convertScreenToGrid(
+            currentPosition, screenDimensions)
         x = min(gridCoordinates[0], self.mouseInitial[0])
         y = max(gridCoordinates[0], self.mouseInitial[0])
         z = min(gridCoordinates[1], self.mouseInitial[1])
@@ -63,11 +66,22 @@ class Level:
                 self.selection.pop(0)
             self.mouseInitial = self.selection.pop(0)
 
+# %% OBJECTS
+
 
 class Object:
-    def __init__(self, x: (float, float), ID):
+    def __init__(self, x: (float, float), ID, size=(1, 1)):
         self.position = x
         self.ID = ID
+        self.velocity = (0.0, 0.0)
+        self.scale = size
+
+    def update(self, deltaTime: float):
+        self.position = (self.position[0] + self.velocity[0] * deltaTime,
+                         self.position[1] + self.velocity[1] * deltaTime)
+        self.velocity = (0, 0)
+
+# %% TILES
 
 
 class Tiles:
@@ -102,7 +116,14 @@ class ConveyorTile(Tiles):
 
     def update(self, level: Level):
         # TODO Move the object in the facing direction
-        pass
+        for i in level.objects:
+            if (i.position[0] >= self.position[0]
+                and i.position[1] >= self.position[1]) \
+                    and (i.position[0] < self.position[0]+1
+                         and i.position[1] < self.position[1]+1):
+                i.velocity = (
+                    self.direction[0]-self.position[0],
+                    self.direction[1]-self.position[1])
 
 
 class WallTile(Tiles):
