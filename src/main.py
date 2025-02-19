@@ -43,10 +43,10 @@ def main():
             if event.type == pygame.QUIT:    # Quitting should work when paused
                 running = False
                 
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN: 
                 if event.key == pygame.K_p:  # Press P to toggle pause
                     paused = not paused 
-                    font = pygame.font.Font(None, 80)
+                    font = pygame.font.Font(None, 80)    # Overlay pause menu, I roughly centered the text
                     overlay = pygame.Surface((1280, 720), pygame.SRCALPHA); overlay.fill((64, 64, 80, 128)); screen.blit(overlay, (0, 0))
                     screen.blit(font.render("PAUSED, PRESS P TO UNPAUSE", True, (255, 255, 255)), ((240), 720 // 2))
                     pygame.display.flip()
