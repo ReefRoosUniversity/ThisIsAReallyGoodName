@@ -72,9 +72,9 @@ def main():
             pygame.display.flip()
             
             clock.tick(FPS)  # limits FPS to FPS
-        # except Exception as e:
-        #     print(e)
-        pygame.quit()
+     # except Exception as e:
+     #     print(e)
+     pygame.quit()
 
 
 # Forces this file to only run when it is directly ran.
