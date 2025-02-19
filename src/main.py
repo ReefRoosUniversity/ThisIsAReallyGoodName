@@ -14,13 +14,13 @@ from render import Rengine
 # - Colour scheme
 # - PEP8 standard
 
-
 def main():
     # %% SETUP
     pygame.init()
     screen = pygame.display.set_mode((1280, 720))
     clock = pygame.time.Clock()
     running = True
+    paused = False
     stage = Level(8, 8)
     # TEST
     # This should not remain in the code after testing and serves no purpose
@@ -40,30 +40,41 @@ def main():
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:    # Quitting should work when paused
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN \
+                
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Press P to toggle pause
+                    paused = not paused 
+                    font = pygame.font.Font(None, 80)
+                    overlay = pygame.Surface((1280, 720), pygame.SRCALPHA); overlay.fill((64, 64, 80, 128)); screen.blit(overlay, (0, 0))
+                    screen.blit(font.render("PAUSED, PRESS P TO UNPAUSE", True, (255, 255, 255)), ((240), 720 // 2))
+                    pygame.display.flip()
+                    
+        if not paused:
+            
+            if event.type == pygame.MOUSEBUTTONDOWN \
                     and pygame.mouse.get_pressed(3)[0]:
                 stage.mouseInitial = stage.convertScreenToGrid(
                     pygame.mouse.get_pos())
-        if pygame.mouse.get_pressed(3)[0]:
-            stage.processMouse(pygame.mouse.get_pos(), screen.get_size())
-        screen.fill("#16161D")
-
-        for i in stage.board_state:
-            for j in i:
-                j.update(stage)
-        for i in stage.objects:
-            i.update(deltaTime)
-        Rengine.draw(screen, stage)
-        Rengine.drawObjects(screen, stage)
-        # flip() the display to put your work on screen
-        pygame.display.flip()
-
-        clock.tick(FPS)  # limits FPS to FPS
-    # except Exception as e:
-    #     print(e)
-    pygame.quit()
+            if pygame.mouse.get_pressed(3)[0]:
+                stage.processMouse(pygame.mouse.get_pos(), screen.get_size())
+            screen.fill("#16161D")
+    
+            for i in stage.board_state:
+                for j in i:
+                    j.update(stage)
+            for i in stage.objects:
+                i.update(deltaTime)
+            Rengine.draw(screen, stage)
+            Rengine.drawObjects(screen, stage)
+            # flip() the display to put your work on screen
+            pygame.display.flip()
+            
+            clock.tick(FPS)  # limits FPS to FPS
+        # except Exception as e:
+        #     print(e)
+        pygame.quit()
 
 
 # Forces this file to only run when it is directly ran.
