@@ -26,13 +26,32 @@ class Rengine:
             if len(level_.selection) > 0 and ((x, y) in level_.selection) and \
                     colour == "white":
                 colour = "#9FE2BF"
-            pygame.draw.rect(screen, colour,
-                             pygame.Rect(
-                                 leftAdjust + x * rectWidth +
-                                 (x % level_.width),
-                                 topAdjust + y * rectWidth +
-                                 (y % level_.height),
-                                 rectWidth, rectWidth))
+            r = pygame.Rect(
+                leftAdjust + x * rectWidth,
+                topAdjust + y * rectWidth,
+                rectWidth, rectWidth)
+            if (colour == "black"):  # adapt later for other images
+                img = level.ConveyorTile.texture
+                img = pygame.transform.scale(img, (rectWidth, rectWidth))
+                t = level_.boardState[x][y].direction[0] - \
+                    level_.boardState[x][y].position[0]
+
+                j = level_.boardState[x][y].direction[1] - \
+                    level_.boardState[x][y].position[1]
+                if (j != 0):
+                    j += 1
+
+                angle = 90*(j) + -90*t
+                img = pygame.transform.rotate(img, angle)
+                rect = img.get_rect()
+
+                rect.move_ip(leftAdjust + x * rectWidth,
+                             topAdjust + y * rectWidth)
+                screen.blit(img, rect)
+                # pygame.draw.rect(screen, colour,
+                #                  rect, 1)
+                continue
+            pygame.draw.rect(screen, colour, r)
 
     def drawObjects(screen: pygame.Surface, level_: level.Level,
                     screenDimensions=(1280, 720)):
@@ -50,10 +69,6 @@ class Rengine:
         for obj in level_.objects:
             pygame.draw.rect(screen, "lime",
                              pygame.Rect(
-                                 leftAdjust +
-                                     (obj.position[0] -
-                                      obj.scale[0]/2) * rectWidth,
-                                 topAdjust +
-                                     (obj.position[1] -
-                                      obj.scale[1]/2) * rectWidth,
+                                 leftAdjust + rectWidth*(obj.position[0]),
+                                 topAdjust + rectWidth*(obj.position[1]),
                                  rectWidth*obj.scale[0], rectWidth*obj.scale[1]))

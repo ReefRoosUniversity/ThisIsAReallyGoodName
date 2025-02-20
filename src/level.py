@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
+import pygame
+import os
 # %% LEVEL
 
 
@@ -72,19 +73,36 @@ class Level:
 
 class Object:
     def __init__(self, x: (float, float), ID, size=(0.8, 0.8)):
-        self.position = (x[0]+size[0]/2, x[1]+size[1]/2)
+        self.position = (x[0] + (1-size[0])/2,
+                         x[1] + (1-size[1])/2)
         self.ID = ID
         self.velocity = (0.0, 0.0)
         self.scale = size
+        self.lifespan = 100*1000  # 10 seconds in measued in milisecond
+        self.spawnTime = pygame.time.get_ticks()
 
-    def update(self, deltaTime: float):
+    def update(self, deltaTime: float, level: Level):
+        n = (self.velocity[0]**2 + self.velocity[1]**2)**(1/2)
+        if (n != 0.0):  # Normalize velocity
+            self.velocity = (self.velocity[0]/n, self.velocity[1]/n)
         self.position = (self.position[0] + self.velocity[0] * deltaTime,
                          self.position[1] + self.velocity[1] * deltaTime)
         self.velocity = (0, 0)
+        if (self.spawnTime + self.lifespan < pygame.time.get_ticks()):
+            level.objects.remove(self)
 
-    def isCollision(self, x: (float, float), size: (float, float)):
+    def isCollision(self, x: (float, float), size=(1, 1)):
         # TODO
-        pass
+        xScale = self.scale[0]
+        xPos = self.position[0]
+
+        yScale = self.scale[1]
+        yPos = self.position[1]
+        xAxis = (((xPos + xScale) >= x[0] and
+                  (x[0] + size[0]) >= xPos))
+        yAxis = (((yPos + yScale) >= x[1] and
+                  (x[1] + size[1]) >= yPos))
+        return xAxis and yAxis
 
 # %% TILES
 
@@ -103,32 +121,27 @@ class Tiles:
         self.position = (0, 0)
         self.type = Tiles.Type.NONE
 
-    def isValidMove(self, Object):
-        return False
-
     def update(self, level: Level):
         pass
 
 
 class ConveyorTile(Tiles):
+    texture = pygame.image.load(os.path.join("../assets/", "conveyor.png"))
+
     def __init__(self, x: (int, int), z: (int, int)):
         self.position = x
         self.type = Tiles.Type.CONVEYOR
         self.direction = z
 
-    def isValidMove(self, Object):
-        return True
-
     def update(self, level: Level):
-        # TODO Move the object in the facing direction
+        # TODO  Add gaurd rails
+
         for i in level.objects:
-            if (i.position[0] >= self.position[0]
-                and i.position[1] >= self.position[1]) \
-                    and (i.position[0] < self.position[0]+1
-                         and i.position[1] < self.position[1]+1):
-                i.velocity = (
-                    self.direction[0]-self.position[0],
-                    self.direction[1]-self.position[1])
+            if i.isCollision(self.position):
+                i.velocity = ((i.velocity[0] +
+                               self.direction[0]-self.position[0]),
+                              (i.velocity[1] +
+                              self.direction[1]-self.position[1]))
 
 
 class WallTile(Tiles):
@@ -138,14 +151,19 @@ class WallTile(Tiles):
 
 
 class GeneratorTile(Tiles):
-    def __init__(self, x: (int, int), y: (int, int), ID):
+    def __init__(self, x: (int, int), y: (int, int), ID, cycle=5.0):
         self.position = x
         self.output = y
+        self.ID = ID
         self.type = Tiles.Type.GENERATOR
+        self.cycleTime = cycle * 1000.0
+        self.timeOld = pygame.time.get_ticks()
 
     def update(self, level: Level):
-        # TODO Create new Object in the Level
-        pass
+        if pygame.time.get_ticks() >= self.timeOld + self.cycleTime:
+            # TODO play animation
+            level.objects.append(Object(self.output, self.ID))
+            self.timeOld = pygame.time.get_ticks()
 
 
 class ReceiverTile(Tiles):
@@ -153,6 +171,8 @@ class ReceiverTile(Tiles):
         self.position = x
         self.type = Tiles.Type.RECEIVER
 
-    def update(self, evel: Level):
+    def update(self, level: Level):
         # TODO remove any objects on the tile
-        pass
+        for o in level.objects:
+            if o.isCollision(self.position):
+                level.objects.remove(o)

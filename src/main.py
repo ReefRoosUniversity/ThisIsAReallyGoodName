@@ -24,15 +24,18 @@ def main():
     running = True
     paused = False
     stage = Level(8, 8)
+
+    ConveyorTile.texture.convert(screen)
+
     # TEST
     # This should not remain in the code after testing and serves no purpose
     # other than making sure things work. Feel free to experiment with it to
     # understand this mess.
     stage.boardState[2, 2] = WallTile((2, 2))
-    stage.boardState[4, 2] = GeneratorTile((4, 2), (1, 1), 'test')
+    stage.boardState[4, 2] = GeneratorTile((4, 2), (4, 3), 'test')
     stage.boardState[6, 5] = ConveyorTile((6, 5), (6, 4))
     stage.boardState[2, 1] = ReceiverTile((2, 1))
-    stage.objects.append(Object((0, 0), 1))
+    stage.objects.append(Object((1, 5), 1))
     # try:
 
     FPS = 60
@@ -87,7 +90,7 @@ def main():
             for j in i:
                 j.update(stage)
         for i in stage.objects:
-            i.update(deltaTime)
+            i.update(deltaTime, stage)
         Rengine.draw(screen, stage)
         Rengine.drawObjects(screen, stage)
         # flip() the display to put your work on screen
