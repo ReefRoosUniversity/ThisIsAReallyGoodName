@@ -6,15 +6,15 @@ import numpy as np
 
 class Level:
     def __init__(self, n=8, m=8, winCondition=[]):
-        self.board_state = np.full((n, m), Tiles(), dtype=Tiles)
+        self.boardState = np.full((n, m), Tiles(), dtype=Tiles)
         self.width = n  # Col
         self.height = m  # Row
         self.goal = winCondition
         self.selection = []
         self.objects = []
 
-        self.mouseInitial = (0, 0)
-        self.mouseFinal = (0, 0)
+        self.mouseInitial = (None, None)
+        self.mouseFinal = (None, None)
 
     def loadLevelFile(path):
         # TODO self descriptive and optional
@@ -24,26 +24,27 @@ class Level:
                      screenDimensions=(1280, 720)):
         gridCoordinates = self.convertScreenToGrid(
             currentPosition, screenDimensions)
+        if (self.mouseInitial == (None, None)):
+            return
         x = min(gridCoordinates[0], self.mouseInitial[0])
         y = max(gridCoordinates[0], self.mouseInitial[0])
         z = min(gridCoordinates[1], self.mouseInitial[1])
         w = max(gridCoordinates[1], self.mouseInitial[1])
         if y-x > w-z:
-            out = [(i, self.mouseInitial[1]) for i in range(x, y)]
+            out = [(i, self.mouseInitial[1]) for i in range(x, y+1)]
             if (self.mouseInitial[0] > gridCoordinates[0]):
                 out.sort(reverse=True)
         else:  # x-y < z-w:
-            out = [(self.mouseInitial[0], i) for i in range(z, w)]
+            out = [(self.mouseInitial[0], i) for i in range(z, w+1)]
             if (self.mouseInitial[1] > gridCoordinates[1]):
                 out.sort(reverse=True)
 
         self.selection = out
-        self.createConveyor(gridCoordinates)
 
     def convertScreenToGrid(self, position: (int, int),
                             screenDimensions=(1280, 720)):
         RectWidth = min(((screenDimensions[0]) / float(self.width+1)),
-                        ((screenDimensions[1]) / float(self.height+1)))+1
+                        ((screenDimensions[1]) / float(self.height+1)))
         leftAdjust = float((screenDimensions[0])/2) - \
             self.width/2*(RectWidth+1)
         topAdjust = float(
@@ -53,25 +54,25 @@ class Level:
         y = int(np.floor((position[1]-topAdjust)/RectWidth))
         return (x, y)
 
-    def createConveyor(self, pos: (int, int)):
-        x = self.mouseInitial[0]
-        y = self.mouseInitial[1]
-        if x in range(self.width) and y in range(self.height) \
-                and len(self.selection) > 1:
-            if self.board_state[x][y].type == 0:
-                self.board_state[x][y] = ConveyorTile(
-                    (x, y), self.selection[1])
-        if len(self.selection) > 1:
-            if (self.mouseInitial == self.selection[0]):
-                self.selection.pop(0)
-            self.mouseInitial = self.selection.pop(0)
+    def createConveyor(self):
+        if len(self.selection) <= 1:
+            return
+        for i in range(len(self.selection)-1):
+            x = self.selection[i]
+            if not ((x[0] < self.width and x[0] >= 0)
+                    and (x[1] < self.width and x[1] >= 0)):
+                continue
+            if (self.boardState[x[0]][x[1]].type != Tiles.Type().NONE):
+                continue
+            self.boardState[x[0]][x[1]] = ConveyorTile(
+                self.selection[i], self.selection[i+1])
 
 # %% OBJECTS
 
 
 class Object:
-    def __init__(self, x: (float, float), ID, size=(1, 1)):
-        self.position = x
+    def __init__(self, x: (float, float), ID, size=(0.8, 0.8)):
+        self.position = (x[0]+size[0]/2, x[1]+size[1]/2)
         self.ID = ID
         self.velocity = (0.0, 0.0)
         self.scale = size
@@ -80,6 +81,10 @@ class Object:
         self.position = (self.position[0] + self.velocity[0] * deltaTime,
                          self.position[1] + self.velocity[1] * deltaTime)
         self.velocity = (0, 0)
+
+    def isCollision(self, x: (float, float), size: (float, float)):
+        # TODO
+        pass
 
 # %% TILES
 

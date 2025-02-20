@@ -1,23 +1,25 @@
 import pygame
-from level import Level, WallTile, GeneratorTile, ConveyorTile, ReceiverTile, Object
+from level import Level, Tiles, WallTile, GeneratorTile, ConveyorTile, ReceiverTile, Object
 from render import Rengine
-
+import numpy as np
 # %%  TODO
-# - Conveyor placement bug:
-#       Dragging upwards or left leaves the conveyers placed 1 tile behind
-#       where they should be.
+# - Improve conveyor belt collision detection using AABB
+# - Bug: Clicks not always registered
+# - Add conveyer belt removal
 # - Generator Objects
-# - Pause Menu
+# - ✔️ Pause Menu
 # - Start Menu
 # - Level loading
 # - Textures (probably max of 64x64)
 # - Colour scheme
 # - PEP8 standard
+SCREEN_DIMENSIONS = (1280, 720)
+
 
 def main():
     # %% SETUP
     pygame.init()
-    screen = pygame.display.set_mode((1280, 720))
+    screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
     clock = pygame.time.Clock()
     running = True
     paused = False
@@ -26,52 +28,72 @@ def main():
     # This should not remain in the code after testing and serves no purpose
     # other than making sure things work. Feel free to experiment with it to
     # understand this mess.
-    stage.board_state[2, 2] = WallTile((2, 2))
-    stage.board_state[4, 2] = GeneratorTile((4, 2), (1, 1), 'test')
-    stage.board_state[6, 5] = ConveyorTile((6, 5), (6, 4))
-    stage.board_state[2, 1] = ReceiverTile((2, 1))
-    stage.objects.append(Object((1, 5), 1))
+    stage.boardState[2, 2] = WallTile((2, 2))
+    stage.boardState[4, 2] = GeneratorTile((4, 2), (1, 1), 'test')
+    stage.boardState[6, 5] = ConveyorTile((6, 5), (6, 4))
+    stage.boardState[2, 1] = ReceiverTile((2, 1))
+    stage.objects.append(Object((0, 0), 1))
     # try:
-    # %% GAMELOOP
-    FPS = 60
-    while running:
-        deltaTime = clock.tick(FPS)/1000  # fast divide by 1024
 
-        # poll for events
+    FPS = 60
+    # %% GAMELOOP
+    while running:
+        deltaTime = clock.tick(FPS)/1000
+        # %% KEY POLLING
+        #
         # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:    # Quitting should work when paused
                 running = False
-                
-            elif event.type == pygame.KEYDOWN: 
+                break
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:  # Testing reset key, del later
+                    stage.boardState = np.full((8, 8), Tiles(), dtype=Tiles)
                 if event.key == pygame.K_p:  # Press P to toggle pause
-                    paused = not paused 
-                    font = pygame.font.Font(None, 80)    # Overlay pause menu, I roughly centered the text
-                    overlay = pygame.Surface((1280, 720), pygame.SRCALPHA); overlay.fill((64, 64, 80, 128)); screen.blit(overlay, (0, 0))
-                    screen.blit(font.render("PAUSED, PRESS P TO UNPAUSE", True, (255, 255, 255)), ((240), 720 // 2))
+                    paused = not paused
+                    # Overlay pause menu, I roughly centered the text
+                    font = pygame.font.Font(None, 80)
+                    overlay = pygame.Surface(
+                        SCREEN_DIMENSIONS, pygame.SRCALPHA)
+                    overlay.fill((64, 64, 80, 128))
+                    screen.blit(overlay, (0, 0))
+                    screen.blit(font.render("PAUSED, PRESS P TO UNPAUSE",
+                                True, (255, 255, 255)),
+                                ((240), SCREEN_DIMENSIONS[1]//2))
                     pygame.display.flip()
-                    
-        if not paused:
-            
-            if event.type == pygame.MOUSEBUTTONDOWN \
-                    and pygame.mouse.get_pressed(3)[0]:
-                stage.mouseInitial = stage.convertScreenToGrid(
-                    pygame.mouse.get_pos())
-            if pygame.mouse.get_pressed(3)[0]:
-                stage.processMouse(pygame.mouse.get_pos(), screen.get_size())
-            screen.fill("#16161D")
-    
-            for i in stage.board_state:
-                for j in i:
-                    j.update(stage)
-            for i in stage.objects:
-                i.update(deltaTime)
-            Rengine.draw(screen, stage)
-            Rengine.drawObjects(screen, stage)
-            # flip() the display to put your work on screen
-            pygame.display.flip()
-            
-            clock.tick(FPS)  # limits FPS to FPS
+                    clock.tick(FPS)  # limits FPS to FPS
+        if paused:
+            continue  # does the same of before but with less nesting
+
+        pygame.event.get()
+        if event.type == pygame.MOUSEBUTTONDOWN \
+                and pygame.mouse.get_pressed(3)[0]:
+            stage.mouseInitial = stage.convertScreenToGrid(
+                pygame.mouse.get_pos())
+        elif pygame.mouse.get_pressed(3)[0]:
+            stage.processMouse(pygame.mouse.get_pos(), screen.get_size())
+        elif event.type == pygame.MOUSEBUTTONUP and \
+                not pygame.mouse.get_pressed(3)[0]:
+            stage.mouseFinal = stage.convertScreenToGrid(
+                pygame.mouse.get_pos())
+            stage.createConveyor()
+        # %% RENDERING
+        #
+
+        screen.fill("#16161D")
+
+        for i in stage.boardState:
+            for j in i:
+                j.update(stage)
+        for i in stage.objects:
+            i.update(deltaTime)
+        Rengine.draw(screen, stage)
+        Rengine.drawObjects(screen, stage)
+        # flip() the display to put your work on screen
+        pygame.display.flip()
+
+        clock.tick(FPS)  # limits FPS to FPS
     # except Exception as e:
     #     print(e)
     pygame.quit()
@@ -81,3 +103,4 @@ def main():
 # This makes the file safe to import into other files.
 if __name__ == '__main__':
     main()
+    del SCREEN_DIMENSIONS
