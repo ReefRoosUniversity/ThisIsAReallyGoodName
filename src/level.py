@@ -2,6 +2,12 @@
 import numpy as np
 import pygame
 import os
+
+
+def _normalize(x: (float, float)):
+    n = (x[0]**2 + x[1]**2)**(1/2)
+    assert (n != 0)
+    return (x[0]/n, x[1]/n)
 # %% LEVEL
 
 
@@ -72,13 +78,15 @@ class Level:
 
 
 class Object:
+    texture = pygame.image.load(os.path.join("../assets/", "box.png"))
+
     def __init__(self, x: (float, float), ID, size=(0.8, 0.8)):
         self.position = (x[0] + (1-size[0])/2,
                          x[1] + (1-size[1])/2)
         self.ID = ID
         self.velocity = (0.0, 0.0)
         self.scale = size
-        self.lifespan = 100*1000  # 10 seconds in measued in milisecond
+        self.lifespan = 30*1000  # 10 seconds in measued in milisecond
         self.spawnTime = pygame.time.get_ticks()
 
     def update(self, deltaTime: float, level: Level):
@@ -104,7 +112,36 @@ class Object:
                   (x[1] + size[1]) >= yPos))
         return xAxis and yAxis
 
+    def resolveDirection(self, target: (float, float), size=(1.0, 1.0)):
+        sX, sY = size[0], size[1]
+        compass = [
+            (0.0/sX,  1.0/sY),  # up
+            (1.0/sX,  0.0/sY),  # right
+            (0.0/sX, -1.0/sY),  # down
+            (-1.0/sX, 0.0/sY),  # left
+            (0, 0)  # none
+        ]
+        _max = 0.0
+        bestMatch = 4
+        for i in range(len(compass)):
+            dot_product = np.dot(_normalize(target), compass[i])
+            if (dot_product > _max):
+                _max = dot_product
+                bestMatch = i
+
+        return bestMatch
+
+
 # %% TILES
+
+
+def convertTileImages(screen):
+    ConveyorTile.texture.convert(screen)
+    ReceiverTile.texture.convert(screen)
+    WallTile.texture.convert(screen)
+    GeneratorTile.texture.convert(screen)
+    # Objects too
+    Object.texture.convert(screen)
 
 
 class Tiles:
@@ -145,12 +182,39 @@ class ConveyorTile(Tiles):
 
 
 class WallTile(Tiles):
+    texture = pygame.image.load(os.path.join("../assets/", "wall.png"))
+
     def __init__(self, x: (int, int)):
         self.position = x
         self.type = Tiles.Type.WALL
 
+    def update(self, level: Level):
+        for i in level.objects:
+            if not i.isCollision(self.position):
+                continue
+            pos = (i.position[0]-self.position[0],
+                   i.position[1]-self.position[1])
+            _dir = i.resolveDirection(pos)
+            match _dir:
+                case 0:
+                    y = self.position[1] + 1
+                    i.position = (i.position[0], y)
+                case 1:
+                    x = self.position[0] + 1
+                    i.position = (x, i.position[1])
+                case 2:
+                    y = self.position[1] - i.scale[1]
+                    i.position = (i.position[0], y)
+                case 3:
+                    x = self.position[0] - i.scale[0]
+                    i.position = (x, i.position[1])
+                case 4:
+                    pass
+
 
 class GeneratorTile(Tiles):
+    texture = pygame.image.load(os.path.join("../assets/", "generator.png"))
+
     def __init__(self, x: (int, int), y: (int, int), ID, cycle=5.0):
         self.position = x
         self.output = y
@@ -167,6 +231,8 @@ class GeneratorTile(Tiles):
 
 
 class ReceiverTile(Tiles):
+    texture = pygame.image.load(os.path.join("../assets/", "receiver.png"))
+
     def __init__(self, x: (int, int)):
         self.position = x
         self.type = Tiles.Type.RECEIVER

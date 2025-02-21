@@ -1,16 +1,14 @@
 import pygame
 from level import Level, Tiles, WallTile, GeneratorTile, ConveyorTile, ReceiverTile, Object
+from level import convertTileImages
 from render import Rengine
 import numpy as np
 # %%  TODO
-# - Improve conveyor belt collision detection using AABB
 # - Bug: Clicks not always registered
 # - Add conveyer belt removal
-# - Generator Objects
 # - ✔️ Pause Menu
 # - Start Menu
 # - Level loading
-# - Textures (probably max of 64x64)
 # - Colour scheme
 # - PEP8 standard
 SCREEN_DIMENSIONS = (1280, 720)
@@ -24,14 +22,16 @@ def main():
     running = True
     paused = False
     stage = Level(8, 8)
-
-    ConveyorTile.texture.convert(screen)
+    convertTileImages(screen)
 
     # TEST
     # This should not remain in the code after testing and serves no purpose
     # other than making sure things work. Feel free to experiment with it to
     # understand this mess.
     stage.boardState[2, 2] = WallTile((2, 2))
+    stage.boardState[2, 3] = WallTile((2, 3))
+    stage.boardState[2, 4] = WallTile((2, 4))
+
     stage.boardState[4, 2] = GeneratorTile((4, 2), (4, 3), 'test')
     stage.boardState[6, 5] = ConveyorTile((6, 5), (6, 4))
     stage.boardState[2, 1] = ReceiverTile((2, 1))
