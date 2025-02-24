@@ -1,12 +1,10 @@
 import pygame
-from level import Level, Tiles, WallTile, GeneratorTile, ConveyorTile, ReceiverTile, Object
-from level import convertTileImages
+from level import Level, Tiles, Package
 from render import Rengine
 import numpy as np
 # %%  TODO
 # - Bug: Clicks not always registered
 # - Add conveyer belt removal
-# - ✔️ Pause Menu
 # - Start Menu
 # - Level loading
 # - Colour scheme
@@ -22,21 +20,19 @@ def main():
     running = True
     paused = False
     stage = Level(8, 8)
-    convertTileImages(screen)
+    Tiles.convert_tile_images(screen)
 
     # TEST
     # This should not remain in the code after testing and serves no purpose
     # other than making sure things work. Feel free to experiment with it to
     # understand this mess.
-    stage.boardState[2, 2] = WallTile((2, 2))
-    stage.boardState[2, 3] = WallTile((2, 3))
-    stage.boardState[2, 4] = WallTile((2, 4))
-
-    stage.boardState[4, 2] = GeneratorTile((4, 2), (4, 3), 'test')
-    stage.boardState[6, 5] = ConveyorTile((6, 5), (6, 4))
-    stage.boardState[2, 1] = ReceiverTile((2, 1))
-    stage.objects.append(Object((1, 5), 1))
-    # try:
+    stage.board_state[2, 2] = Tiles.WallTile((2, 2))
+    stage.board_state[2, 3] = Tiles.WallTile((2, 3))
+    stage.board_state[2, 4] = Tiles.WallTile((2, 4))
+    stage.board_state[4, 2] = Tiles.GeneratorTile((4, 2), (4, 3), 'test')
+    stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4))
+    stage.board_state[2, 1] = Tiles.ReceiverTile((2, 1))
+    stage.packages.append(Package((1, 5), 1))
 
     FPS = 60
     # %% GAMELOOP
@@ -52,7 +48,7 @@ def main():
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:  # Testing reset key, del later
-                    stage.boardState = np.full((8, 8), Tiles(), dtype=Tiles)
+                    stage.board_state = np.full((8, 8), Tiles(), dtype=Tiles)
                 if event.key == pygame.K_p:  # Press P to toggle pause
                     paused = not paused
                     # Overlay pause menu, I roughly centered the text
@@ -72,33 +68,34 @@ def main():
         pygame.event.get()
         if event.type == pygame.MOUSEBUTTONDOWN \
                 and pygame.mouse.get_pressed(3)[0]:
-            stage.mouseInitial = stage.convertScreenToGrid(
+            stage.mouse_initial = stage.convert_screen_to_grid(
                 pygame.mouse.get_pos())
         elif pygame.mouse.get_pressed(3)[0]:
-            stage.processMouse(pygame.mouse.get_pos(), screen.get_size())
+            stage.process_mouse(pygame.mouse.get_pos(), screen.get_size())
         elif event.type == pygame.MOUSEBUTTONUP and \
                 not pygame.mouse.get_pressed(3)[0]:
-            stage.mouseFinal = stage.convertScreenToGrid(
+            stage.mouse_final = stage.convert_screen_to_grid(
                 pygame.mouse.get_pos())
-            stage.createConveyor()
+            stage.create_conveyor()
+
         # %% RENDERING
         #
 
         screen.fill("#16161D")
 
-        for i in stage.boardState:
+        for i in stage.board_state:
             for j in i:
                 j.update(stage)
-        for i in stage.objects:
+        for i in stage.packages:
             i.update(deltaTime, stage)
+
         Rengine.draw(screen, stage)
-        Rengine.drawObjects(screen, stage)
+        Rengine.draw_packages(screen, stage)
         # flip() the display to put your work on screen
         pygame.display.flip()
 
         clock.tick(FPS)  # limits FPS to FPS
-    # except Exception as e:
-    #     print(e)
+
     pygame.quit()
 
 

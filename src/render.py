@@ -1,47 +1,66 @@
 # -*- coding: utf-8 -*-
-import level
+from level import Level, Tiles
 import pygame
 
 
 class Rengine:
 
-    def draw(screen: pygame.Surface, level_: level.Level(),
-             screenDimensions=(1280, 720)):
+    def draw(screen: pygame.Surface, stage: Level,
+             screen_dimensions=(1280, 720)):
+        """
+        renders all tiles in the level
+
+        Parameters
+        ----------
+        screen : pygame.Surface
+            The image frame buffer to be written to.
+        stage : Level
+            Current level.
+        screen_dimensions : (int, int), optional
+            Size of the screen. The default is (1280, 720).
+
+        Returns
+        -------
+        None.
+
+        """
         # Calculate the lowest ratio which will result in all tiles fitting
         # on screen
-        rectWidth = min((screenDimensions[0] / float(level_.width+1)),
-                        (screenDimensions[1] / float(level_.height+1)))
+        rect_width = min((screen_dimensions[0] / float(stage.width+1)),
+                         (screen_dimensions[1] / float(stage.height+1)))
 
         # I don't know how to explain myself
-        leftAdjust = screenDimensions[0]/2 - \
-            ((level_.width)/2*(rectWidth+1))
-        topAdjust = float(
-            screenDimensions[1]*0.5) - level_.height/2*(rectWidth+1)
+        left_adjust = screen_dimensions[0]/2 - \
+            ((stage.width)/2*(rect_width+1))
+        top_adjust = float(
+            screen_dimensions[1]*0.5) - stage.height/2*(rect_width+1)
 
-        for i in range(level_.boardState.size):
-            x = i % level_.width
-            y = i//level_.width
+        for i in range(stage.board_state.size):
+            x = i % stage.width
+            y = i//stage.width
             colour = "#e1e1e1"
-            if len(level_.selection) > 0 and ((x, y) in level_.selection) and \
-                    level_.boardState[x][y].type == level.Tiles.Type.NONE:
-                colour = "#9FE2BF"
-            r = pygame.Rect(
-                leftAdjust + x * rectWidth,
-                topAdjust + y * rectWidth,
-                rectWidth, rectWidth)
 
-            if (level_.boardState[x][y].type == level.Tiles.Type.NONE):
-                pygame.draw.rect(screen, colour, r)
+            if len(stage.selection) > 0 and ((x, y) in stage.selection) and \
+                    stage.board_state[x][y].type == Tiles.Type.NONE:
+                colour = "#9FE2BF"
+
+            if (stage.board_state[x][y].type == Tiles.Type.NONE):
+                pygame.draw.rect(screen, colour,
+                                 pygame.Rect(
+                                     left_adjust + x * rect_width,
+                                     top_adjust + y * rect_width,
+                                     rect_width, rect_width))
                 continue
 
-            img = level_.boardState[x][y].texture
-            img = pygame.transform.scale(img, (rectWidth, rectWidth))
-            try:
-                t = level_.boardState[x][y].direction[0] - \
-                    level_.boardState[x][y].position[0]
+            img = stage.board_state[x][y].texture
+            img = pygame.transform.scale(img, (rect_width, rect_width))
 
-                j = level_.boardState[x][y].direction[1] - \
-                    level_.boardState[x][y].position[1]
+            try:
+                t = stage.board_state[x][y].direction[0] - \
+                    stage.board_state[x][y].position[0]
+
+                j = stage.board_state[x][y].direction[1] - \
+                    stage.board_state[x][y].position[1]
                 if (j != 0):
                     j += 1
 
@@ -52,43 +71,49 @@ class Rengine:
 
             rect = img.get_rect()
 
-            rect.move_ip(leftAdjust + x * rectWidth,
-                         topAdjust + y * rectWidth)
+            rect.move_ip(left_adjust + x * rect_width,
+                         top_adjust + y * rect_width)
             screen.blit(img, rect)
             # pygame.draw.rect(screen, colour,
             #                  rect, 1)
 
-    def drawObjects(screen: pygame.Surface, level_: level.Level,
-                    screenDimensions=(1280, 720)):
+    def draw_packages(screen: pygame.Surface, stage: Level,
+                      screen_dimensions=(1280, 720)):
+        """
+        Renders all packages.
+        Should be ran **after** the regular draw function.
+
+        Parameters
+        ----------
+        screen : pygame.Surface
+            The image frame buffer to be written to.
+        stage : Level
+            Current level.
+        screen_dimensions : (int, int), optional
+            Size of the screen. The default is (1280, 720).
+
+        Returns
+        -------
+        None.
+
+        """
         # Calculate the lowest ratio which will result in all tiles fitting
         # on screen
-        rectWidth = min((screenDimensions[0] / float(level_.width+1)),
-                        (screenDimensions[1] / float(level_.height+1)))
+        rect_width = min((screen_dimensions[0] / float(stage.width+1)),
+                         (screen_dimensions[1] / float(stage.height+1)))
 
         # I don't know how to explain myself
-        leftAdjust = screenDimensions[0]/2 - \
-            ((level_.width)/2*(rectWidth+1))
-        topAdjust = float(
-            screenDimensions[1]*0.5) - level_.height/2*(rectWidth+1)
+        left_adjust = screen_dimensions[0]/2 - \
+            ((stage.width)/2*(rect_width+1))
+        top_adjust = float(
+            screen_dimensions[1]*0.5) - stage.height/2*(rect_width+1)
 
-        for obj in level_.objects:
-            r = pygame.Rect(
-                leftAdjust + rectWidth*(obj.position[0]),
-                topAdjust + rectWidth*(obj.position[1]),
-                rectWidth*obj.scale[0], rectWidth*obj.scale[1])
-
+        for obj in stage.packages:
             img = obj.texture
-            img = pygame.transform.scale(
-                img, (rectWidth*obj.scale[0], rectWidth*obj.scale[1]))
-
+            img = pygame.transform.scale(img,
+                                         (rect_width*obj.scale[0],
+                                          rect_width*obj.scale[1]))
             rect = img.get_rect()
-
-            rect.move_ip(leftAdjust + obj.position[0] * rectWidth,
-                         topAdjust + obj.position[1] * rectWidth)
+            rect.move_ip(left_adjust + obj.position[0] * rect_width,
+                         top_adjust + obj.position[1] * rect_width)
             screen.blit(img, rect)
-
-            # pygame.draw.rect(screen, "lime",
-            #                  pygame.Rect(
-            #                      leftAdjust + rectWidth*(obj.position[0]),
-            #                      topAdjust + rectWidth*(obj.position[1]),
-            #                      rectWidth*obj.scale[0], rectWidth*obj.scale[1]))
