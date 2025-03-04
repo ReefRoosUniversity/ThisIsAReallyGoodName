@@ -3,7 +3,6 @@ from level import Level, Tiles, Package
 from render import Rengine
 import numpy as np
 # %%  TODO
-# - Bug: Clicks not always registered
 # - Add conveyer belt removal
 # - Start Menu
 # - Level loading
@@ -29,7 +28,10 @@ def main():
     stage.board_state[2, 2] = Tiles.WallTile((2, 2))
     stage.board_state[2, 3] = Tiles.WallTile((2, 3))
     stage.board_state[2, 4] = Tiles.WallTile((2, 4))
-    stage.board_state[4, 2] = Tiles.GeneratorTile((4, 2), (4, 3), 'test')
+    stage.board_state[4, 2] = Tiles.GeneratorTile(
+        (4, 2), (4, 3),
+        Tiles.GeneratorTile.Colour_ID().RED)
+
     stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4))
     stage.board_state[2, 1] = Tiles.ReceiverTile((2, 1))
     stage.packages.append(Package((1, 5), 1))

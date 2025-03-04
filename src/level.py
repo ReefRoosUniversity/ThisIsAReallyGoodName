@@ -30,12 +30,13 @@ class Level:
 
     """
 
-    def __init__(self, n=8, m=8, winCondition=[]):
+    def __init__(self, n=8, m=8, winCondition=[""]):
         self.board_state = np.full(
             (n, m), Tiles.BaseTile(), dtype=Tiles.BaseTile)
         self.width = n  # Col
         self.height = m  # Row
         self.goal = winCondition
+        self.goal_index = 0
         self.selection = []
         self.packages = []
 
@@ -158,6 +159,7 @@ class Package:
     """
 
     texture = pygame.image.load(os.path.join("../assets/", "box.png"))
+    speed = 1.6
 
     def __init__(self, x: (float, float), ID, size=(0.8, 0.8)):
 
@@ -188,7 +190,8 @@ class Package:
 
         n = (self.velocity[0]**2 + self.velocity[1]**2)**(1/2)
         if (n != 0.0):  # Normalize velocity
-            self.velocity = (self.velocity[0]/n, self.velocity[1]/n)
+            self.velocity = (self.velocity[0]/n * self.speed,
+                             self.velocity[1]/n * self.speed)
 
         self.position = (self.position[0] + self.velocity[0] * delta_time,
                          self.position[1] + self.velocity[1] * delta_time)
@@ -331,14 +334,21 @@ class Tiles:
             self.direction = z
 
         def update(self, level: Level):
-            # TODO  Add gaurd rails
-
             for i in level.packages:
                 if i.is_collision(self.position):
+                    xVel = self.direction[0]-self.position[0]
+                    yVel = self.direction[1]-self.position[1]
+                    # Move the boxes towards the center along the axis
+                    # parallel to movement
+                    xVel += abs(yVel) * \
+                        (self.position[0]-i.position[0] + (1-i.scale[0])/2)
+                    yVel += abs(xVel) * \
+                        (self.position[1]-i.position[1] + (1-i.scale[1])/2)
+
                     i.velocity = ((i.velocity[0] +
-                                   self.direction[0]-self.position[0]),
+                                   xVel),
                                   (i.velocity[1] +
-                                  self.direction[1]-self.position[1]))
+                                   yVel))
 
     class WallTile(BaseTile):
         """
@@ -378,6 +388,7 @@ class Tiles:
                         pass
 
     class GeneratorTile(BaseTile):
+
         """
         Generates a package every n-seconds.
 
@@ -389,9 +400,29 @@ class Tiles:
             destination of packages out of the generator.
         ID : Any
             a unique ID used to track packages.
-        cycle : float 
+        cycle : float
             Time between the generation of a package.
         """
+        class Colour_ID():
+            RED = 'r'
+            ORANGE = 'o'
+            GREEN = 'g'
+            BLUE = 'b'
+            PURPLE = 'p'
+
+            def ID_to_Colour(ID: str):
+                match ID:
+                    case Tiles.GeneratorTile.Colour_ID.RED:
+                        return "#eb3449"
+                    case Tiles.GeneratorTile.Colour_ID.ORANGE:
+                        return "#d97700"
+                    case Tiles.GeneratorTile.Colour_ID.GREEN:
+                        return "#27db78"
+                    case Tiles.GeneratorTile.Colour_ID.BLUE:
+                        return "#279cdb"
+                    case Tiles.GeneratorTile.Colour_ID.PURPLE:
+                        return "#c927db"
+
         texture = pygame.image.load(
             os.path.join("../assets/", "generator.png"))
 
@@ -429,4 +460,10 @@ class Tiles:
         def update(self, level: Level):
             for o in level.packages:
                 if o.is_collision(self.position):
+                    if (level.goal_index < len(level.goal)) and \
+                            o.ID == level.goal[level.goal_index]:
+                        level.goal_index += 1
+                    else:
+                        level.goal_index = 0
+                    # Remove the Package
                     level.packages.remove(o)
