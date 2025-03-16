@@ -13,7 +13,7 @@ def _normalize(x: (float, float)):
 
 class Level:
     """
-    The level the player will be attemping to solve
+    The level the player will be attemping to solve.
 
     Parameters
     ----------
@@ -38,7 +38,10 @@ class Level:
         self.goal = winCondition
         self.goal_index = 0
         self.selection = []
+        self.selection_removal = []
         self.packages = []
+
+        self.last_pressed = (False, False)
 
         self.mouse_initial = (None, None)
         self.mouse_final = (None, None)
@@ -47,8 +50,8 @@ class Level:
         # TODO self descriptive and optional
         ""
 
-    def process_mouse(self, current_position: (int, int),
-                      screen_dimensions=(1280, 720)):
+    def process_left_mouse(self, current_position: (int, int),
+                           screen_dimensions=(1280, 720)):
         """
         processes change in mouse position to find selected tiles.
 
@@ -83,10 +86,43 @@ class Level:
 
         self.selection = out
 
+    def process_right_mouse(self, current_position: (int, int),
+                            screen_dimensions=(1280, 720)):
+        """
+        processes change in mouse position to find selected tiles for removal.
+
+        Parameters
+        ----------
+        current_position : (int, int)
+            Current mouse position in screen space.
+        screen_dimensions : (int, int), optional
+            Size of the screen. The default is (1280, 720).
+
+        Returns
+        -------
+        None.
+
+        """
+        grid_coordinates = self.convert_screen_to_grid(
+            current_position, screen_dimensions)
+
+        if (self.mouse_initial == (None, None)):
+            return
+        x = min(grid_coordinates[0], self.mouse_initial[0])
+        y = max(grid_coordinates[0], self.mouse_initial[0])
+        z = min(grid_coordinates[1], self.mouse_initial[1])
+        w = max(grid_coordinates[1], self.mouse_initial[1])
+
+        out = [(i, j) for i in range(x, y+1) for j in range(z, w+1)]
+        # for i in range(x, y):
+        #     for j in range(z, w):
+        #         out.append((i, j))
+        self.selection_removal = out
+
     def convert_screen_to_grid(self, position: (int, int),
                                screen_dimensions=(1280, 720)):
         """
-        Converts screen coordinates to grid coordinates
+        Converts screen coordinates to grid coordinates.
 
         Parameters
         ----------
@@ -134,14 +170,37 @@ class Level:
                 continue
             self.board_state[x[0]][x[1]] = Tiles.ConveyorTile(
                 self.selection[i], self.selection[i+1])
+        self.selection = []
 
-# %% packages
+    def remove_conveyor(self):
+        """
+        Removes all valid conveyor belts in the selection
+
+        Returns
+        -------
+        None.
+
+        """
+        if len(self.selection_removal) <= 1:
+            return
+        for i in range(len(self.selection_removal)):
+            x = self.selection_removal[i]
+            if not ((x[0] < self.width and x[0] >= 0)
+                    and (x[1] < self.width and x[1] >= 0)):
+                continue
+            if self.board_state[x[0]][x[1]].type == Tiles.Type.CONVEYOR:
+                if self.board_state[x[0]][x[1]].preserve is True:
+                    continue
+                self.board_state[x[0]][x[1]] = Tiles.BaseTile()
+        self.selection_removal = []
+
+# %% PACKAGES
 #
 
 
 class Package:
     """
-    The primary object being moved by the tiles
+    The primary object being moved by the tiles.
 
     Parameters
     ----------
@@ -173,7 +232,7 @@ class Package:
 
     def update(self, delta_time: float, level: Level):
         """
-        Updates the position of the package. This should be run once per frame
+        Updates the position of the package. This should be run once per frame.
 
         Parameters
         ----------
@@ -214,7 +273,7 @@ class Package:
         Returns
         -------
         bool
-            DESCRIPTION.
+            If a collision occurs.
 
         """
         xScale = self.scale[0]
@@ -236,7 +295,7 @@ class Package:
         Parameters
         ----------
         target : (float, float)
-            The position of the opposing object on the grid scale
+            The position of the opposing object on the grid scale.
         size : (float, float), optional
             Dimensions of the bounding box of the opposing object.
             The default is (1.0, 1.0).
@@ -281,7 +340,7 @@ class Tiles:
         Parameters
         ----------
         screen : pygame.Surface
-            Target frame buffer image
+            Target frame buffer image.
 
         Returns
         -------
@@ -325,13 +384,16 @@ class Tiles:
             position of the tile on the grid.
         z : (int, int)
             the conveyor destination.
+        Preserve: bool
+            If the conveyor should be delete-able.
         """
         texture = pygame.image.load(os.path.join("../assets/", "conveyor.png"))
 
-        def __init__(self, x: (int, int), z: (int, int)):
+        def __init__(self, x: (int, int), z: (int, int), Preserve=False):
             self.position = x
             self.type = Tiles.Type.CONVEYOR
             self.direction = z
+            self.preserve = Preserve
 
         def update(self, level: Level):
             for i in level.packages:

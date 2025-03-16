@@ -1,7 +1,8 @@
+# %%
 import pygame
+
 from level import Level, Tiles, Package
 from render import Rengine
-import numpy as np
 # %%  TODO
 # - Add conveyer belt removal
 # - Start Menu
@@ -14,7 +15,8 @@ SCREEN_DIMENSIONS = (1280, 720)
 def main():
     # %% SETUP
     pygame.init()
-    screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
+    screen = pygame.display.set_mode(
+        SCREEN_DIMENSIONS, pygame.RESIZABLE, vsync=1)
     clock = pygame.time.Clock()
     running = True
     paused = False
@@ -32,7 +34,7 @@ def main():
         (4, 2), (4, 3),
         Tiles.GeneratorTile.Colour_ID().RED)
 
-    stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4))
+    stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4), True)
     stage.board_state[2, 1] = Tiles.ReceiverTile((2, 1))
     stage.packages.append(Package((1, 5), 1))
 
@@ -49,8 +51,6 @@ def main():
                 break
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:  # Testing reset key, del later
-                    stage.board_state = np.full((8, 8), Tiles(), dtype=Tiles)
                 if event.key == pygame.K_p:  # Press P to toggle pause
                     paused = not paused
                     # Overlay pause menu, I roughly centered the text
@@ -68,18 +68,7 @@ def main():
             continue  # does the same of before but with less nesting
 
         pygame.event.get()
-        if event.type == pygame.MOUSEBUTTONDOWN \
-                and pygame.mouse.get_pressed(3)[0]:
-            stage.mouse_initial = stage.convert_screen_to_grid(
-                pygame.mouse.get_pos())
-        elif pygame.mouse.get_pressed(3)[0]:
-            stage.process_mouse(pygame.mouse.get_pos(), screen.get_size())
-        elif event.type == pygame.MOUSEBUTTONUP and \
-                not pygame.mouse.get_pressed(3)[0]:
-            stage.mouse_final = stage.convert_screen_to_grid(
-                pygame.mouse.get_pos())
-            stage.create_conveyor()
-
+        process_input(event, stage, screen)
         # %% RENDERING
         #
 
@@ -99,6 +88,56 @@ def main():
         clock.tick(FPS)  # limits FPS to FPS
 
     pygame.quit()
+
+
+def process_input(event, stage, screen):
+    """
+    Processes the mouse events
+
+    Parameters
+    ----------
+    event : pygame.Event
+        the pygame event.
+    stage : Level
+        The current stage.
+    screen : pygame.Surface
+        currrent window.
+
+    Returns
+    -------
+    None.
+
+    """
+
+    if event.type == pygame.MOUSEBUTTONDOWN \
+            and pygame.mouse.get_pressed(3)[0]:  # MOUSE LEFT PRESS
+        stage.mouse_initial = stage.convert_screen_to_grid(
+            pygame.mouse.get_pos())
+        stage.last_pressed = (True, False)
+
+    elif pygame.mouse.get_pressed(3)[0]:  # MOUSE LEFT HOLD
+        stage.process_left_mouse(pygame.mouse.get_pos(), screen.get_size())
+
+    elif event.type == pygame.MOUSEBUTTONUP and \
+            stage.last_pressed[0]:  # MOUSE LEFT RELEASE
+        stage.mouse_final = stage.convert_screen_to_grid(
+            pygame.mouse.get_pos())
+        stage.create_conveyor()
+
+    elif event.type == pygame.MOUSEBUTTONDOWN \
+            and pygame.mouse.get_pressed(3)[2]:  # MOUSE RIGHT PRESS
+        stage.mouse_initial = stage.convert_screen_to_grid(
+            pygame.mouse.get_pos())
+        stage.last_pressed = (False, True)
+
+    elif pygame.mouse.get_pressed(3)[2]:  # MOUSE RIGHT HOLD
+        stage.process_right_mouse(pygame.mouse.get_pos(), screen.get_size())
+
+    elif event.type == pygame.MOUSEBUTTONUP and \
+            stage.last_pressed[1]:  # MOUSE RIGHT RELEASE
+        stage.mouse_final = stage.convert_screen_to_grid(
+            pygame.mouse.get_pos())
+        stage.remove_conveyor()
 
 
 # Forces this file to only run when it is directly ran.

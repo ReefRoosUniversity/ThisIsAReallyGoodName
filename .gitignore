@@ -1,5 +1,5 @@
 # Directories
 ./.git/*
-**/__pycahce__
+./src/__pycahce__/*
 
 

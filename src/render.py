@@ -45,6 +45,8 @@ class Rengine:
                 colour = "#9FE2BF"
 
             if (stage.board_state[x][y].type == Tiles.Type.NONE):
+                if ((x, y) in stage.selection_removal):
+                    colour = "#ed9da7"
                 pygame.draw.rect(screen, colour,
                                  pygame.Rect(
                                      left_adjust + x * rect_width,
@@ -74,8 +76,13 @@ class Rengine:
             rect.move_ip(left_adjust + x * rect_width,
                          top_adjust + y * rect_width)
             screen.blit(img, rect)
-            # pygame.draw.rect(screen, colour,
-            #                  rect, 1)
+
+            if len(stage.selection_removal) > 0 and \
+                    ((x, y) in stage.selection_removal):
+                colour = "#eb40348a"
+                sel = pygame.Surface((rect_width, rect_width), pygame.SRCALPHA)
+                sel.fill(colour)
+                screen.blit(sel, rect)
 
     def draw_packages(screen: pygame.Surface, stage: Level,
                       screen_dimensions=(1280, 720)):
