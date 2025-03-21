@@ -8,6 +8,7 @@ def _normalize(x: (float, float)):
     n = (x[0]**2 + x[1]**2)**(1/2)
     assert (n != 0)
     return (x[0]/n, x[1]/n)
+
 # %% LEVEL
 
 
@@ -35,8 +36,10 @@ class Level:
             (n, m), Tiles.BaseTile(), dtype=Tiles.BaseTile)
         self.width = n  # Col
         self.height = m  # Row
+
         self.goal = winCondition
         self.goal_index = 0
+
         self.selection = []
         self.selection_removal = []
         self.packages = []
@@ -47,8 +50,110 @@ class Level:
         self.mouse_final = (None, None)
 
     def load_level_file(path):
-        # TODO self descriptive and optional
-        ""
+
+        try:
+            # Key:
+            # '#': wall
+            # 'r','b','p': Red, Blue, Purple Generator
+            # Generators, Sorry
+            # RED:
+            #   'r' : Up
+            #   'f' : Down
+            #   'd' : Left
+            #   't' : Right
+            # BLUE:
+            #   'y' : Up
+            #   'b' : Down
+            #   'g' : Left
+            #   'h' : Right
+            # PURPLE:
+            #   'p' : Up
+            #   ';' : Down
+            #   'l' : Left
+            #   ''' : Right
+            # 'v','<','>','^': Down, Left, Right, Up imovable conveyor
+            # 'R': Receiver
+            # ' ': blank space
+            # Last Line should be the goal, Ex: rrgbrgpo
+
+            file = open(os.path.abspath(path))
+            lines = file.readlines()
+            file.close()
+            width = len(lines[0])-1
+            height = len(lines)-1
+            goal = lines[-1]
+            stage = Level(width, height, goal)
+            for y in range(len(lines)-1):
+                for x in range(len(lines[y])):
+                    char = lines[y][x]
+                    print(lines[y])
+                    if char == ' ':
+                        continue
+                    if char == '#':
+                        stage.board_state[x][y] = \
+                            Tiles.WallTile((x, y))
+                    elif char in ['r', 'f', 't', 'd', 'y', 'g', 'h', 'b',
+                                  'p', ';', 'l', '\'']:
+                        out_dir = (x, y)
+                        ID = 'r'  # DEFAULT
+                        if char in ['r', 'f', 't', 'd']:
+                            ID = 'r'
+                            match char:
+                                case 'r':
+                                    out_dir = (x, y+1)
+                                case 'f':
+                                    out_dir = (x, y+1)
+                                case 'd':
+                                    out_dir = (x-1, y)
+                                case 't':
+                                    out_dir = (x+1, y)
+                        if char in ['y', 'g', 'h', 'b']:
+                            ID = 'b'
+                            match char:
+                                case 'y':
+                                    out_dir = (x, y+1)
+                                case 'b':
+                                    out_dir = (x, y+1)
+                                case 'g':
+                                    out_dir = (x-1, y)
+                                case 'h':
+                                    out_dir = (x+1, y)
+
+                        if char in ['p', ';', 'l', '\'']:
+                            ID = 'p'
+                            match char:
+                                case 'p':
+                                    out_dir = (x, y+1)
+                                case ';':
+                                    out_dir = (x, y+1)
+                                case 'l':
+                                    out_dir = (x-1, y)
+                                case '\'':
+                                    out_dir = (x+1, y)
+
+                        stage.board_state[x][y] = \
+                            Tiles.GeneratorTile(
+                                (x, y), out_dir, ID)  # FIX LATER
+                    elif char in ['<', '>', '^', 'v']:
+                        out_dir = (x, y)
+                        match char:
+                            case '<':
+                                out_dir = (x-1, y)
+                            case '>':
+                                out_dir = (x+1, y)
+                            case '^':
+                                out_dir = (x, y+1)
+                            case 'v':
+                                out_dir = (x, y-1)
+                        stage.board_state[x][y] = \
+                            Tiles.ConveyorTile((x, y), out_dir, True)
+                    elif char == 'R':
+                        stage.board_state[x][y] = \
+                            Tiles.ReceiverTile((x, y))
+            return stage
+        except FileNotFoundError as e:
+            print(e)
+            return Level(8, 8)
 
     def process_left_mouse(self, current_position: (int, int),
                            screen_dimensions=(1280, 720)):
@@ -525,7 +630,7 @@ class Tiles:
                     if (level.goal_index < len(level.goal)) and \
                             o.ID == level.goal[level.goal_index]:
                         level.goal_index += 1
-                    else:
+                    elif level.goal_index < len(level.goal):
                         level.goal_index = 0
                     # Remove the Package
                     level.packages.remove(o)

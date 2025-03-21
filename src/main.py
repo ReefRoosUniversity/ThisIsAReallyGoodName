@@ -4,7 +4,6 @@ import pygame
 from level import Level, Tiles, Package
 from render import Rengine
 # %%  TODO
-# - Add conveyer belt removal
 # - Start Menu
 # - Level loading
 # - Colour scheme
@@ -20,23 +19,25 @@ def main():
     clock = pygame.time.Clock()
     running = True
     paused = False
-    stage = Level(8, 8)
+    stage = Level(8, 8, [Tiles.GeneratorTile.Colour_ID().RED])
     Tiles.convert_tile_images(screen)
-
+    level_queue = ["../assets/1.lvl", "../assets/2.lvl", "../assets/3.lvl"]
+    level_select = 0
+    stage = Level.load_level_file("../assets/1.lvl")
     # TEST
     # This should not remain in the code after testing and serves no purpose
     # other than making sure things work. Feel free to experiment with it to
     # understand this mess.
-    stage.board_state[2, 2] = Tiles.WallTile((2, 2))
-    stage.board_state[2, 3] = Tiles.WallTile((2, 3))
-    stage.board_state[2, 4] = Tiles.WallTile((2, 4))
-    stage.board_state[4, 2] = Tiles.GeneratorTile(
-        (4, 2), (4, 3),
-        Tiles.GeneratorTile.Colour_ID().RED)
+    # stage.board_state[2, 2] = Tiles.WallTile((2, 2))
+    # stage.board_state[2, 3] = Tiles.WallTile((2, 3))
+    # stage.board_state[2, 4] = Tiles.WallTile((2, 4))
+    # stage.board_state[4, 2] = Tiles.GeneratorTile(
+    #     (4, 2), (4, 3),
+    #     Tiles.GeneratorTile.Colour_ID().RED)
 
-    stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4), True)
-    stage.board_state[2, 1] = Tiles.ReceiverTile((2, 1))
-    stage.packages.append(Package((1, 5), 1))
+    # stage.board_state[6, 5] = Tiles.ConveyorTile((6, 5), (6, 4), True)
+    # stage.board_state[2, 1] = Tiles.ReceiverTile((2, 1))
+    # stage.packages.append(Package((1, 5), 1))
 
     FPS = 60
     # %% GAMELOOP
@@ -51,7 +52,7 @@ def main():
                 break
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:  # Press P to toggle pause
+                if event.key == pygame.K_ESCAPE:  # Press esc to toggle pause
                     paused = not paused
                     # Overlay pause menu, I roughly centered the text
                     font = pygame.font.Font(None, 80)
@@ -59,7 +60,7 @@ def main():
                         SCREEN_DIMENSIONS, pygame.SRCALPHA)
                     overlay.fill((64, 64, 80, 128))
                     screen.blit(overlay, (0, 0))
-                    screen.blit(font.render("PAUSED, PRESS P TO UNPAUSE",
+                    screen.blit(font.render("PAUSED, PRESS ESC TO UNPAUSE",
                                 True, (255, 255, 255)),
                                 ((240), SCREEN_DIMENSIONS[1]//2))
                     pygame.display.flip()
@@ -73,7 +74,15 @@ def main():
         #
 
         screen.fill("#16161D")
+        if stage.goal_index >= len(stage.goal):
+            # Display win screen
+            # Load next level
+            level_select += 1
+            if (level_select > len(level_queue)):
+                break  # Out of levels.
+            stage = Level.load_level_file(level_queue[level_select])
 
+            continue
         for i in stage.board_state:
             for j in i:
                 j.update(stage)
