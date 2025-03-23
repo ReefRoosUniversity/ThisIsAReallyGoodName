@@ -81,12 +81,11 @@ class Level:
             file.close()
             width = len(lines[0])-1
             height = len(lines)-1
-            goal = lines[-1]
+            goal = lines[-1].strip()
             stage = Level(width, height, goal)
             for y in range(len(lines)-1):
                 for x in range(len(lines[y])):
                     char = lines[y][x]
-                    print(lines[y])
                     if char == ' ':
                         continue
                     if char == '#':
@@ -190,6 +189,7 @@ class Level:
                 out.sort(reverse=True)
 
         self.selection = out
+        self.selection_removal = []
 
     def process_right_mouse(self, current_position: (int, int),
                             screen_dimensions=(1280, 720)):
@@ -223,6 +223,7 @@ class Level:
         #     for j in range(z, w):
         #         out.append((i, j))
         self.selection_removal = out
+        self.selection = []
 
     def convert_screen_to_grid(self, position: (int, int),
                                screen_dimensions=(1280, 720)):
@@ -269,7 +270,7 @@ class Level:
         for i in range(len(self.selection)-1):
             x = self.selection[i]
             if not ((x[0] < self.width and x[0] >= 0)
-                    and (x[1] < self.width and x[1] >= 0)):
+                    and (x[1] < self.height and x[1] >= 0)):
                 continue
             if (self.board_state[x[0]][x[1]].type != Tiles.Type().NONE):
                 continue
@@ -291,7 +292,7 @@ class Level:
         for i in range(len(self.selection_removal)):
             x = self.selection_removal[i]
             if not ((x[0] < self.width and x[0] >= 0)
-                    and (x[1] < self.width and x[1] >= 0)):
+                    and (x[1] < self.height and x[1] >= 0)):
                 continue
             if self.board_state[x[0]][x[1]].type == Tiles.Type.CONVEYOR:
                 if self.board_state[x[0]][x[1]].preserve is True:

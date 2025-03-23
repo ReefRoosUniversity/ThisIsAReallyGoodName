@@ -34,7 +34,9 @@ class Rengine:
             ((stage.width)/2*(rect_width+1))
         top_adjust = float(
             screen_dimensions[1]*0.5) - stage.height/2*(rect_width+1)
-
+        pygame.draw.rect(screen, "#e1e1e1",
+                         pygame.Rect(left_adjust, top_adjust, stage.width *
+                                     rect_width, stage.height*rect_width))
         for i in range(stage.board_state.size):
             x = i % stage.width
             y = i//stage.width
@@ -53,7 +55,8 @@ class Rengine:
                                      top_adjust + y * rect_width,
                                      rect_width, rect_width))
                 continue
-
+            elif stage.board_state[x][y].type == Tiles.Type.NONE:
+                continue
             img = stage.board_state[x][y].texture
             img = pygame.transform.scale(img, (rect_width, rect_width))
 
