@@ -57,13 +57,13 @@ class Level:
             # 'r','b','p': Red, Blue, Purple Generator
             # Generators, Sorry
             # RED:
-            #   'r' : Up
-            #   'f' : Down
+            #   'f' : Up
+            #   'r' : Down
             #   'd' : Left
             #   't' : Right
             # BLUE:
-            #   'y' : Up
-            #   'b' : Down
+            #   'b' : Up
+            #   'y' : Down
             #   'g' : Left
             #   'h' : Right
             # PURPLE:
