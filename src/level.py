@@ -140,9 +140,9 @@ class Level:
                                 out_dir = (x-1, y)
                             case '>':
                                 out_dir = (x+1, y)
-                            case '^':
-                                out_dir = (x, y+1)
                             case 'v':
+                                out_dir = (x, y+1)
+                            case '^':
                                 out_dir = (x, y-1)
                         stage.board_state[x][y] = \
                             Tiles.ConveyorTile((x, y), out_dir, True)
