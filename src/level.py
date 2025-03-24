@@ -110,7 +110,7 @@ class Level:
                             ID = 'b'
                             match char:
                                 case 'y':
-                                    out_dir = (x, y+1)
+                                    out_dir = (x, y-1)
                                 case 'b':
                                     out_dir = (x, y+1)
                                 case 'g':
