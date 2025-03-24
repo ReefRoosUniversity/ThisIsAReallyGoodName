@@ -101,7 +101,7 @@ class Level:
                                 case 'r':
                                     out_dir = (x, y+1)
                                 case 'f':
-                                    out_dir = (x, y+1)
+                                    out_dir = (x, y-1)
                                 case 'd':
                                     out_dir = (x-1, y)
                                 case 't':
