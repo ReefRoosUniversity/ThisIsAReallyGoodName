@@ -62,8 +62,8 @@ class Level:
             #   'd' : Left
             #   't' : Right
             # BLUE:
-            #   'b' : Up
-            #   'y' : Down
+            #   'y' : Up
+            #   'b' : Down
             #   'g' : Left
             #   'h' : Right
             # PURPLE:
