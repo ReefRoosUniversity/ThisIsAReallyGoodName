@@ -9,6 +9,19 @@ def _normalize(x: (float, float)):
     assert (n != 0)
     return (x[0]/n, x[1]/n)
 
+
+def _char_helper(char, pattern: []):
+    if char == pattern[0]:  # Up
+        out_dir = (0, -1)
+    elif char == pattern[1]:  # Down
+        out_dir = (0, +1)
+    elif char == pattern[2]:  # Left
+        out_dir = (-1, 0)
+    elif char == pattern[3]:  # Right
+        out_dir = (+1, 0)
+    else:
+        out_dir = (0, 0)
+    return out_dir
 # %% LEVEL
 
 
@@ -50,32 +63,42 @@ class Level:
         self.mouse_final = (None, None)
 
     def load_level_file(path):
+        """
+        Keys:
+            '#': wall
+            Generators;
+                RED:
+                  'f' : Up
+                  'r' : Down
+                  'd' : Left
+                  't' : Right
+                BLUE:
+                  'y' : Up
+                  'b' : Down
+                  'g' : Left
+                  'h' : Right
+                PURPLE:
+                  'p' : Up
+                  ';' : Down
+                  'l' : Left
+                  ''' : Right
 
+            'v','<','>','^': Down, Left, Right, Up immovable conveyor
+            'R': Receiver
+            ' ': blank space
+        Last Line should be the goal, Ex: rrgbrgpo
+
+        Parameters
+        ----------
+        path : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        Level.
+
+        """
         try:
-            # Key:
-            # '#': wall
-            # 'r','b','p': Red, Blue, Purple Generator
-            # Generators, Sorry
-            # RED:
-            #   'f' : Up
-            #   'r' : Down
-            #   'd' : Left
-            #   't' : Right
-            # BLUE:
-            #   'y' : Up
-            #   'b' : Down
-            #   'g' : Left
-            #   'h' : Right
-            # PURPLE:
-            #   'p' : Up
-            #   ';' : Down
-            #   'l' : Left
-            #   ''' : Right
-            # 'v','<','>','^': Down, Left, Right, Up imovable conveyor
-            # 'R': Receiver
-            # ' ': blank space
-            # Last Line should be the goal, Ex: rrgbrgpo
-
             file = open(os.path.abspath(path))
             lines = file.readlines()
             file.close()
@@ -83,6 +106,7 @@ class Level:
             height = len(lines)-1
             goal = lines[-1].strip()
             stage = Level(width, height, goal)
+
             for y in range(len(lines)-1):
                 for x in range(len(lines[y])):
                     char = lines[y][x]
@@ -91,68 +115,39 @@ class Level:
                     if char == '#':
                         stage.board_state[x][y] = \
                             Tiles.WallTile((x, y))
-                    elif char in ['r', 'f', 't', 'd', 'y', 'g', 'h', 'b',
-                                  'p', ';', 'l', '\'']:
+                    elif char in ['r', 'f', 't', 'd',
+                                  'y', 'g', 'h', 'b',
+                                  'p', ';', 'l', '\'']:  # GENERATORS
                         out_dir = (x, y)
                         ID = 'r'  # DEFAULT
-                        if char in ['r', 'f', 't', 'd']:
+                        if char in ['r', 'f', 't', 'd']:  # RED GENERATOR
                             ID = 'r'
-                            match char:
-                                case 'r':
-                                    out_dir = (x, y+1)
-                                case 'f':
-                                    out_dir = (x, y-1)
-                                case 'd':
-                                    out_dir = (x-1, y)
-                                case 't':
-                                    out_dir = (x+1, y)
-                        if char in ['y', 'g', 'h', 'b']:
+                            (x_out, y_out) = _char_helper(
+                                char, ['f', 'r', 'd', 't'])
+                        elif char in ['y', 'g', 'h', 'b']:  # BLUE GENERATOR
                             ID = 'b'
-                            match char:
-                                case 'y':
-                                    out_dir = (x, y-1)
-                                case 'b':
-                                    out_dir = (x, y+1)
-                                case 'g':
-                                    out_dir = (x-1, y)
-                                case 'h':
-                                    out_dir = (x+1, y)
-
-                        if char in ['p', ';', 'l', '\'']:
+                            (x_out, y_out) = _char_helper(
+                                char, ['y', 'b', 'g', 'h'])
+                        elif char in ['p', ';', 'l', '\'']:  # PURPLE GENERATOR
                             ID = 'p'
-                            match char:
-                                case 'p':
-                                    out_dir = (x, y+1)
-                                case ';':
-                                    out_dir = (x, y+1)
-                                case 'l':
-                                    out_dir = (x-1, y)
-                                case '\'':
-                                    out_dir = (x+1, y)
+                            (x_out, y_out) = _char_helper(
+                                char, ['p', ';', 'l', '\''])
 
+                        out_dir = (x+x_out, y+y_out)
                         stage.board_state[x][y] = \
-                            Tiles.GeneratorTile(
-                                (x, y), out_dir, ID)  # FIX LATER
+                            Tiles.GeneratorTile((x, y), out_dir, ID)
                     elif char in ['<', '>', '^', 'v']:
-                        out_dir = (x, y)
-                        match char:
-                            case '<':
-                                out_dir = (x-1, y)
-                            case '>':
-                                out_dir = (x+1, y)
-                            case 'v':
-                                out_dir = (x, y+1)
-                            case '^':
-                                out_dir = (x, y-1)
+                        (x_out, y_out) = _char_helper(
+                            char, ['^', 'v', '<', '>'])
+                        out_dir = (x+x_out, y+y_out)
                         stage.board_state[x][y] = \
                             Tiles.ConveyorTile((x, y), out_dir, True)
                     elif char == 'R':
-                        stage.board_state[x][y] = \
-                            Tiles.ReceiverTile((x, y))
-            return stage
+                        stage.board_state[x][y] = Tiles.ReceiverTile((x, y))
         except FileNotFoundError as e:
             print(e)
             return Level(8, 8)
+        return stage
 
     def process_left_mouse(self, current_position: (int, int),
                            screen_dimensions=(1280, 720)):
@@ -280,7 +275,7 @@ class Level:
 
     def remove_conveyor(self):
         """
-        Removes all valid conveyor belts in the selection
+        Removes all valid conveyor belts in the selection.
 
         Returns
         -------
@@ -299,6 +294,13 @@ class Level:
                     continue
                 self.board_state[x[0]][x[1]] = Tiles.BaseTile()
         self.selection_removal = []
+
+    def update(self, deltaTime):
+        for i in self.board_state:
+            for j in i:
+                j.update(self)
+        for i in self.packages:
+            i.update(deltaTime, self)
 
 # %% PACKAGES
 #
@@ -571,10 +573,11 @@ class Tiles:
         cycle : float
             Time between the generation of a package.
         """
+        texture = pygame.image.load(
+            os.path.join("../assets/", "generator.png"))
+
         class Colour_ID():
             RED = 'r'
-            ORANGE = 'o'
-            GREEN = 'g'
             BLUE = 'b'
             PURPLE = 'p'
 
@@ -582,17 +585,10 @@ class Tiles:
                 match ID:
                     case Tiles.GeneratorTile.Colour_ID.RED:
                         return "#eb3449"
-                    case Tiles.GeneratorTile.Colour_ID.ORANGE:
-                        return "#d97700"
-                    case Tiles.GeneratorTile.Colour_ID.GREEN:
-                        return "#27db78"
                     case Tiles.GeneratorTile.Colour_ID.BLUE:
                         return "#279cdb"
                     case Tiles.GeneratorTile.Colour_ID.PURPLE:
                         return "#c927db"
-
-        texture = pygame.image.load(
-            os.path.join("../assets/", "generator.png"))
 
         def __init__(self, x: (int, int), y: (int, int), ID, cycle=5.0):
 
