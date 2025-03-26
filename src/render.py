@@ -125,6 +125,10 @@ class Rengine:
             img = pygame.transform.scale(img,
                                          (rect_width*obj.scale[0],
                                           rect_width*obj.scale[1]))
+            alpha = obj.calculate_transparency(pygame.time.get_ticks()) * 256
+            #  Temporary for now ^
+
+            img.set_alpha(alpha)
             rect = img.get_rect()
             rect.move_ip(left_adjust + obj.position[0] * rect_width,
                          top_adjust + obj.position[1] * rect_width)

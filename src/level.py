@@ -335,8 +335,8 @@ class Package:
         self.ID = ID
         self.velocity = (0.0, 0.0)
         self.scale = size
-        self.lifespan = 30*1000  # 10 seconds in measued in milisecond
-        self.spawn_time = pygame.time.get_ticks()
+        self.lifespan = 1*1000  # 10 seconds in measued in milisecond
+        self.last_contact_time = pygame.time.get_ticks()
 
     def update(self, delta_time: float, level: Level):
         """
@@ -364,7 +364,7 @@ class Package:
                          self.position[1] + self.velocity[1] * delta_time)
         self.velocity = (0, 0)
 
-        if (self.spawn_time + self.lifespan < pygame.time.get_ticks()):
+        if (self.last_contact_time + self.lifespan < pygame.time.get_ticks()):
             level.packages.remove(self)
 
     def is_collision(self, x: (float, float), size=(1, 1)):
@@ -436,6 +436,8 @@ class Package:
 
         return best_match
 
+    def calculate_transparency(self, x):
+        return 1-abs(x - self.last_contact_time) / 1000.0
 
 # %% TILES
 
@@ -519,6 +521,7 @@ class Tiles:
                                    xVel),
                                   (i.velocity[1] +
                                    yVel))
+                    i.last_contact_time = pygame.time.get_ticks()
 
     class WallTile(BaseTile):
         """
