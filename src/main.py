@@ -138,4 +138,4 @@ def display_pause_screen(screen):
 # This makes the file safe to import into other files.
 if __name__ == '__main__':
     main()
-    del SCREEN_DIMENSIONS
+    del SCREEN_DIMENSIONS, FPS
