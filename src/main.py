@@ -103,23 +103,27 @@ def main():
     # %% GAMELOOP
     while running:
         deltaTime = clock.tick(FPS)/1000
+        
         # %% KEY POLLING
         #
         # pygame.QUIT event means the user clicked X to close your window
+
+        # Handle events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:    # Quitting should work when paused
                 running = False
                 break
-
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 paused = not paused
                 display_pause_screen(screen)
+            
+            # Process input for each event
+            if not paused:
+                process_input(event, stage, screen)
 
         if paused:
             continue  # does the same of before but with less nesting
 
-        pygame.event.get()
-        process_input(event, stage, screen)
         # %% RENDERING
         #
 

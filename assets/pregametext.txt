@@ -3,8 +3,8 @@ first shift in a factory that assembles ... ... ... something? ... ...
 ... It's not your place to ask, this is the only place that would hire
 you. Your task today is to place conveyor belts (left click and drag)
 and remove conveyor belts (right click and drag) to deliver supplies
-to the green reciever in the correct order. Try not to waste too many
-conveyor belts beacuse they cost $59,000 USD each. Also, make sure to
+to the green receiver in the correct order. Try not to waste too many
+conveyor belts because they cost $59,000 USD each. Also, make sure to
 not destroy too much inventory by letting supplies fall off the conveyors.
 Remember to relax, this is your first day. You can press ESC to take a
 break any time you need. You have 5 levels to complete today, press
