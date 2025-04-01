@@ -4,35 +4,29 @@ import time
 
 from level import Tiles, Level
 from render import Rengine
-# %%  TODO
-# - Start Menu
-# - Animations
-# - Colour scheme
-# - PEP8 standard
+
 SCREEN_DIMENSIONS = (1280, 720)
 FPS = 60
 
 
 def pregame_screen(screen):
     font = pygame.font.SysFont("courier", 32, bold=True)
-    text_color = (255, 255, 255) # max light
+    text_color = (255, 255, 255)  # max light
     margin = 40
     line_spacing = 10
     word_delay = 0.2
 
-
     infile = open("../assets/pregametext.txt", "r")   # open to read
-    full_text = infile.read()  
-    
+    full_text = infile.read()
+
     # Process the text (remove extra whitespace and split into words)
     words = ' '.join(full_text.split()).split(' ')
-    
 
     last_word_time = time.time()
     clock = pygame.time.Clock()
     current_words = []
     word_index = 0
-    
+
     running = True
     while running:
         # Handle events
@@ -41,17 +35,16 @@ def pregame_screen(screen):
                 return False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 return True
-            
 
-        
         # Add words with delay
-        if word_index < len(words) and time.time() - last_word_time > word_delay:
+        if word_index < len(words) and \
+                time.time() - last_word_time > word_delay:
             current_words.append(words[word_index])
             word_index += 1
             last_word_time = time.time()
-        
+
         screen.fill("black")
-        
+
         # Word wrapping test and logic
         lines = []
         current_line = ""
@@ -64,21 +57,16 @@ def pregame_screen(screen):
                 current_line = word
         if current_line:
             lines.append(current_line)
-        
+
         # Wrap text starting from top
         y_pos = margin
         for line in lines:
             text_surface = font.render(line, True, text_color)
             screen.blit(text_surface, (margin, y_pos))
-            y_pos += font.get_height() + line_spacing #move down
-        
+            y_pos += font.get_height() + line_spacing  # move down
+
         pygame.display.flip()
         clock.tick(FPS)
-
-
-
-
-
 
 
 def main():
@@ -92,7 +80,7 @@ def main():
     if not pregame_screen(screen):
         pygame.quit()
         return
-    
+
     running = True
     paused = False
     Tiles.convert_tile_images(screen)
@@ -103,7 +91,7 @@ def main():
     # %% GAMELOOP
     while running:
         deltaTime = clock.tick(FPS)/1000
-        
+
         # %% KEY POLLING
         #
         # pygame.QUIT event means the user clicked X to close your window
@@ -116,7 +104,7 @@ def main():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 paused = not paused
                 display_pause_screen(screen)
-            
+
             # Process input for each event
             if not paused:
                 process_input(event, stage, screen)

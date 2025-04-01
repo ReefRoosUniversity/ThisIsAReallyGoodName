@@ -325,7 +325,11 @@ class Package:
 
     """
 
-    texture = pygame.image.load(os.path.join("../assets/", "box.png"))
+    textures = [
+        pygame.image.load(os.path.join("../assets/", "box.png")),
+        pygame.image.load(os.path.join("../assets/", "potion.png")),
+        pygame.image.load(os.path.join("../assets/", "spray_paint.png"))
+    ]
     speed = 1.6
 
     def __init__(self, x: (float, float), ID, size=(0.8, 0.8)):
@@ -439,6 +443,16 @@ class Package:
     def calculate_transparency(self, x):
         return 1-abs(x - self.last_contact_time) / 1000.0
 
+    def getTexture(self):
+        match self.ID:
+            case Tiles.GeneratorTile.Colour_ID.RED:
+                return Package.textures[0]
+            case Tiles.GeneratorTile.Colour_ID.BLUE:
+                return Package.textures[1]
+            case Tiles.GeneratorTile.Colour_ID.PURPLE:
+                return Package.textures[2]
+
+
 # %% TILES
 
 
@@ -457,12 +471,16 @@ class Tiles:
         None.
 
         """
-        Tiles.ConveyorTile.texture.convert(screen)
+        for texture in Tiles.ConveyorTile.textures:
+            texture.convert(screen)
+
         Tiles.ReceiverTile.texture.convert(screen)
         Tiles.WallTile.texture.convert(screen)
-        Tiles.GeneratorTile.texture.convert(screen)
+        for texture in Tiles.GeneratorTile.textures:
+            texture.convert(screen)
         # packages too
-        Package.texture.convert(screen)
+        for texture in Package.textures:
+            texture.convert(screen)
 
     class Type():
         NONE = 0
@@ -484,6 +502,9 @@ class Tiles:
         def update(self, level: Level):
             pass
 
+        def getTexture(self):
+            return None
+
     class ConveyorTile(BaseTile):
         """
         Moves a package towards a destination.
@@ -497,7 +518,11 @@ class Tiles:
         Preserve: bool
             If the conveyor should be delete-able.
         """
-        texture = pygame.image.load(os.path.join("../assets/", "conveyor.png"))
+        textures = [
+            pygame.image.load(os.path.join("../assets/", "conveyor.png")),
+            pygame.image.load(os.path.join(
+                "../assets/", "static-conveyor.png"))
+        ]
 
         def __init__(self, x: (int, int), z: (int, int), Preserve=False):
             self.position = x
@@ -522,6 +547,12 @@ class Tiles:
                                   (i.velocity[1] +
                                    yVel))
                     i.last_contact_time = pygame.time.get_ticks()
+
+        def getTexture(self):
+            if self.preserve:
+                return self.textures[1]
+            else:
+                return self.textures[0]
 
     class WallTile(BaseTile):
         """
@@ -560,6 +591,9 @@ class Tiles:
                     case 4:
                         pass
 
+        def getTexture(self):
+            return self.texture
+
     class GeneratorTile(BaseTile):
 
         """
@@ -576,8 +610,11 @@ class Tiles:
         cycle : float
             Time between the generation of a package.
         """
-        texture = pygame.image.load(
-            os.path.join("../assets/", "generator.png"))
+        textures = [
+            pygame.image.load(os.path.join("../assets/", "r-generator.png")),
+            pygame.image.load(os.path.join("../assets/", "b-generator.png")),
+            pygame.image.load(os.path.join("../assets/", "p-generator.png"))
+        ]
 
         class Colour_ID():
             RED = 'r'
@@ -596,7 +633,7 @@ class Tiles:
         def __init__(self, x: (int, int), y: (int, int), ID, cycle=5.0):
 
             self.position = x
-            self.output = y
+            self.direction = y
             self.ID = ID
             self.type = Tiles.Type.GENERATOR
             self.cycle_time = cycle * 1000.0
@@ -605,8 +642,17 @@ class Tiles:
         def update(self, level: Level):
             if pygame.time.get_ticks() >= self.time_old + self.cycle_time:
                 # TODO play animation
-                level.packages.append(Package(self.output, self.ID))
+                level.packages.append(Package(self.direction, self.ID))
                 self.time_old = pygame.time.get_ticks()
+
+        def getTexture(self):
+            match self.ID:
+                case Tiles.GeneratorTile.Colour_ID.RED:
+                    return self.textures[0]
+                case Tiles.GeneratorTile.Colour_ID.BLUE:
+                    return self.textures[1]
+                case Tiles.GeneratorTile.Colour_ID.PURPLE:
+                    return self.textures[2]
 
     class ReceiverTile(BaseTile):
         """
@@ -634,3 +680,6 @@ class Tiles:
                         level.goal_index = 0
                     # Remove the Package
                     level.packages.remove(o)
+
+        def getTexture(self):
+            return self.texture

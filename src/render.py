@@ -59,7 +59,7 @@ class Rengine:
                 continue
             elif stage.board_state[x][y].type == Tiles.Type.NONE:
                 continue
-            img = stage.board_state[x][y].texture
+            img = stage.board_state[x][y].getTexture()
             img = pygame.transform.scale(img, (rect_width, rect_width))
 
             try:
@@ -114,14 +114,13 @@ class Rengine:
         rect_width = min((screen_dimensions[0] / float(stage.width+1)),
                          (screen_dimensions[1] / float(stage.height+1)))
 
-        # I don't know how to explain myself
         left_adjust = screen_dimensions[0]/2 - \
             ((stage.width)/2*(rect_width+1))
         top_adjust = float(
             screen_dimensions[1]*0.5) - stage.height/2*(rect_width+1)
 
         for obj in stage.packages:
-            img = obj.texture
+            img = obj.getTexture()
             img = pygame.transform.scale(img,
                                          (rect_width*obj.scale[0],
                                           rect_width*obj.scale[1]))
