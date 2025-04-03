@@ -9,14 +9,14 @@ SCREEN_DIMENSIONS = (1280, 720)
 FPS = 60
 
 
-def pregame_screen(screen):
-    font = pygame.font.SysFont("courier", 32, bold=True)
+def textscreen(screen,filename,fontsize):
+    font = pygame.font.SysFont("courier", int(fontsize), bold=True)
     text_color = (255, 255, 255)  # max light
     margin = 40
     line_spacing = 10
     word_delay = 0.2
 
-    infile = open("../assets/pregametext.txt", "r")   # open to read
+    infile = open("../assets/" + filename, "r")   # open to read
     full_text = infile.read()
 
     # Process the text (remove extra whitespace and split into words)
@@ -77,7 +77,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Show pregame screen
-    if not pregame_screen(screen):
+    if not textscreen(screen, "pregametext.txt" , 32):
         pygame.quit()
         return
 
