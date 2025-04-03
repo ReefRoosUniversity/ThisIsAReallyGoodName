@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-from level import Level, Tiles
+from level import Level, Tiles, Package
 import pygame
 
 
@@ -132,3 +131,35 @@ class Rengine:
             rect.move_ip(left_adjust + obj.position[0] * rect_width,
                          top_adjust + obj.position[1] * rect_width)
             screen.blit(img, rect)
+
+    def draw_goal(screen: pygame.Surface, stage: Level,
+                  screen_dimensions=(1280, 720)):
+        rect_width = min((screen_dimensions[0] / float(stage.width+1)),
+                         (screen_dimensions[1] / float(stage.height+1)))
+        i = 0
+        for ID in stage.goal:
+            match ID:
+                case 'r':
+                    img = Package.textures[0]
+                case 'b':
+                    img = Package.textures[1]
+                case 'p':
+                    img = Package.textures[2]
+
+            img = pygame.transform.scale(img, (rect_width*0.5, rect_width*0.5))
+            rect = img.get_rect()
+            rect.move_ip(i*rect_width*0.5, 10)
+            if (i < stage.goal_index):
+                colour = "#9FE2BF"
+            elif i == stage.goal_index:
+                colour = "yellow"
+            else:
+                colour = "#16161D8a"
+
+            sel = pygame.Surface(
+                (rect_width*0.5, rect_width*0.5), pygame.SRCALPHA)
+            sel.fill(colour)
+            screen.blit(sel, rect)
+
+            screen.blit(img, rect)
+            i += 1

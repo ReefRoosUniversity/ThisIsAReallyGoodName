@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pygame
 import os
@@ -6,7 +5,8 @@ import os
 
 def _normalize(x: (float, float)):
     n = (x[0]**2 + x[1]**2)**(1/2)
-    assert (n != 0)
+    if (n == 0):
+        return (0, 0)
     return (x[0]/n, x[1]/n)
 
 

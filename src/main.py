@@ -9,66 +9,6 @@ SCREEN_DIMENSIONS = (1280, 720)
 FPS = 60
 
 
-def textscreen(screen,filename,fontsize):
-    font = pygame.font.SysFont("courier", int(fontsize), bold=True)
-    text_color = (255, 255, 255)  # max light
-    margin = 40
-    line_spacing = 10
-    word_delay = 0.2
-
-    infile = open("../assets/" + filename, "r")   # open to read
-    full_text = infile.read()
-
-    # Process the text (remove extra whitespace and split into words)
-    words = ' '.join(full_text.split()).split(' ')
-
-    last_word_time = time.time()
-    clock = pygame.time.Clock()
-    current_words = []
-    word_index = 0
-
-    running = True
-    while running:
-        # Handle events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                return True
-
-        # Add words with delay
-        if word_index < len(words) and \
-                time.time() - last_word_time > word_delay:
-            current_words.append(words[word_index])
-            word_index += 1
-            last_word_time = time.time()
-
-        screen.fill("black")
-
-        # Word wrapping test and logic
-        lines = []
-        current_line = ""
-        for word in current_words:
-            test_line = f"{current_line} {word}" if current_line else word
-            if font.size(test_line)[0] < SCREEN_DIMENSIONS[0] - 2*margin:
-                current_line = test_line
-            else:
-                lines.append(current_line)
-                current_line = word
-        if current_line:
-            lines.append(current_line)
-
-        # Wrap text starting from top
-        y_pos = margin
-        for line in lines:
-            text_surface = font.render(line, True, text_color)
-            screen.blit(text_surface, (margin, y_pos))
-            y_pos += font.get_height() + line_spacing  # move down
-
-        pygame.display.flip()
-        clock.tick(FPS)
-
-
 def main():
     # %% SETUP
     pygame.init()
@@ -77,7 +17,7 @@ def main():
     clock = pygame.time.Clock()
 
     # Show pregame screen
-    if not textscreen(screen, "pregametext.txt" , 32):
+    if not textscreen(screen, "pregametext.txt", 32):
         pygame.quit()
         return
 
@@ -130,6 +70,7 @@ def main():
 
         Rengine.draw(screen, stage)
         Rengine.draw_packages(screen, stage)
+        Rengine.draw_goal(screen, stage)
         # flip() the display to put your work on screen
         pygame.display.flip()
 
@@ -199,6 +140,66 @@ def display_pause_screen(screen):
                 True, (255, 255, 255)),
                 ((240), SCREEN_DIMENSIONS[1]//2))
     pygame.display.flip()
+
+
+def textscreen(screen, filename, fontsize):
+    font = pygame.font.SysFont("courier", int(fontsize), bold=True)
+    text_color = (255, 255, 255)  # max light
+    margin = 40
+    line_spacing = 10
+    word_delay = 0.2
+
+    infile = open("../assets/" + filename, "r")   # open to read
+    full_text = infile.read()
+
+    # Process the text (remove extra whitespace and split into words)
+    words = ' '.join(full_text.split()).split(' ')
+
+    last_word_time = time.time()
+    clock = pygame.time.Clock()
+    current_words = []
+    word_index = 0
+
+    running = True
+    while running:
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                return True
+
+        # Add words with delay
+        if word_index < len(words) and \
+                time.time() - last_word_time > word_delay:
+            current_words.append(words[word_index])
+            word_index += 1
+            last_word_time = time.time()
+
+        screen.fill("#16161D")
+
+        # Word wrapping test and logic
+        lines = []
+        current_line = ""
+        for word in current_words:
+            test_line = f"{current_line} {word}" if current_line else word
+            if font.size(test_line)[0] < SCREEN_DIMENSIONS[0] - 2*margin:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+
+        # Wrap text starting from top
+        y_pos = margin
+        for line in lines:
+            text_surface = font.render(line, True, text_color)
+            screen.blit(text_surface, (margin, y_pos))
+            y_pos += font.get_height() + line_spacing  # move down
+
+        pygame.display.flip()
+        clock.tick(FPS)
 
 
 # Forces this file to only run when it is directly ran.
