@@ -3,7 +3,8 @@
 ## Requirements
 
 This program requires **pygame** and the default spyder installation.
-``` cmd
+
+```cmd
 pip install pygame
 ```
 
