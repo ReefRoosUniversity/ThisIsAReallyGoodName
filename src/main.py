@@ -24,7 +24,7 @@ def main():
     running = True
     paused = False
     Tiles.convert_tile_images(screen)
-    level_queue = ["../assets/1.lvl", "../assets/2.lvl", "../assets/3.lvl"]
+    level_queue = ["../assets/1.lvl", "../assets/2.lvl", "../assets/3.lvl", "../assets/4.lvl", "../assets/5.lvl",]
     level_select = 0
     stage = Level.load_level_file("../assets/1.lvl")  # Load the first level
 
@@ -61,7 +61,8 @@ def main():
             # Display win screen
             # Load next level
             level_select += 1
-            if (level_select > len(level_queue)):
+            if (level_select >= len(level_queue)):
+                textscreen(screen, "endgametext.txt", 32)
                 break  # Out of levels.
             stage = Level.load_level_file(level_queue[level_select])
             continue
